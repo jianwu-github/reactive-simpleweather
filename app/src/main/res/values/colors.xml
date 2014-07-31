@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Weather -->
+    <color name="weather_card_line_color">#E5E5E5</color>
+    <color name="weather_card_item_text_color">#868686</color>
+</resources>
