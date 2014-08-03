@@ -17,6 +17,7 @@ import org.hellojianwu.android.simpleweather.asyncservice.AsyncLocationService;
 import org.hellojianwu.android.simpleweather.asyncservice.AsyncWeatherService;
 import org.hellojianwu.android.simpleweather.asyncservice.GeoPoint;
 import org.hellojianwu.android.simpleweather.card.WeatherCard;
+import org.hellojianwu.android.simpleweather.util.PreferenceMonitor;
 import org.hellojianwu.android.simpleweather.weatherdata.Weather;
 import org.hellojianwu.android.simpleweather.weatherdata.WeatherData;
 
@@ -39,6 +40,36 @@ public class WeatherCardFragment extends Fragment {
     private static final long LOCATION_TIMEOUT_SECONDS = 7;
 
     WeatherCard weatherCard;
+    GeoPoint currLocation;
+
+    public GeoPoint getCurrLocation() {
+        return currLocation;
+    }
+
+    public void setCurrLocation(GeoPoint currLocation) {
+        this.currLocation = currLocation;
+    }
+
+    public WeatherCard initWeatherCard(WeatherData weatherData) {
+        weatherCard = new WeatherCard(getActivity());
+        weatherCard.setWeatherData(weatherData);
+        weatherCard.init();
+
+        return weatherCard;
+    }
+
+    public WeatherCard initWeatherCard(WeatherData weatherData, String tempUnit) {
+        if (tempUnit == null || tempUnit.trim().length() == 0) {
+            return initWeatherCard(weatherData);
+        }
+
+        weatherCard = new WeatherCard(getActivity());
+        weatherCard.setWeatherData(weatherData);
+        weatherCard.setTempUnit(tempUnit);
+        weatherCard.init();
+
+        return weatherCard;
+    }
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,18 +93,20 @@ public class WeatherCardFragment extends Fragment {
         final AsyncLocationService locationService = new AsyncLocationService(locationManager);
 
         final Observable<Observable<WeatherData>> currWeatherObservable = locationService
-                                                                                .getLocation()
-                                                                                .timeout(LOCATION_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                                                                                .map(new Func1<Location, Observable<WeatherData>>() {
-                                                                                    public Observable<WeatherData> call(Location location) {
-                                                                                        final double longitude = location.getLongitude();
-                                                                                        final double latitude = location.getLatitude();
-                                                                                        final GeoPoint geoPoint = new GeoPoint(longitude, latitude);
-                                                                                        final AsyncWeatherService weatherService = new AsyncWeatherService();
+                .getLocation()
+                .timeout(LOCATION_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .map(new Func1<Location, Observable<WeatherData>>() {
+                    public Observable<WeatherData> call(Location location) {
+                        final double longitude = location.getLongitude();
+                        final double latitude = location.getLatitude();
+                        final GeoPoint geoPoint = new GeoPoint(longitude, latitude);
+                        final AsyncWeatherService weatherService = new AsyncWeatherService();
 
-                                                                                        return weatherService.getCurrentWeather(geoPoint);
-                                                                                    }
-                                                                                });
+                        setCurrLocation(geoPoint);
+
+                        return weatherService.getCurrentWeatherInMetric(geoPoint);
+                    }
+                });
 
 
         parentActivity.mCompositeSubscription
@@ -82,14 +115,13 @@ public class WeatherCardFragment extends Fragment {
                         .subscribe(new Subscriber<Observable<WeatherData>>(){
 
                             public void onCompleted() {
-                                Log.i("WeatherActivity", "WeatherData Subscriber.onCompleted");
+                                Log.i("WeatherCardFragment", "WeatherData Subscriber.onCompleted");
                             }
 
                             public void onError(Throwable e) {
-                                Log.e("WeatherActivity", "WeatherData Subscriber.onError", e);
+                                Log.e("WeatherCardFragment", "WeatherData Subscriber.onError", e);
                             }
 
-                            @Override
                             public void onNext(Observable<WeatherData> weatherDataObservable) {
                                 weatherDataObservable
                                         .subscribeOn(Schedulers.newThread())
@@ -99,18 +131,55 @@ public class WeatherCardFragment extends Fragment {
                                                 WeatherCard weatherCard = initWeatherCard(weatherData);
 
                                                 cardView.setCard(weatherCard);
-                                                // cardView.refreshDrawableState();
                                             }
                                         });
                             }
                         }));
     }
 
-    public WeatherCard initWeatherCard(WeatherData weatherData) {
-        weatherCard = new WeatherCard(getActivity());
-        weatherCard.setWeatherData(weatherData);
-        weatherCard.init();
+    public void onResume() {
+        WeatherActivity parentActivity = (WeatherActivity)getActivity();
+        CardView cardView = (CardView) parentActivity.findViewById(R.id.weathercard_fragment_cardview);
 
-        return weatherCard;
+        if (PreferenceMonitor.getInstance().isPreferenceChanged()) {
+            String currTempUnit = PreferenceMonitor.getInstance().getTempUnit();
+
+            refreshWeatherByLoc(parentActivity, currTempUnit, cardView);
+
+            PreferenceMonitor.getInstance().setPreferenceChanged(false);
+        }
+
+        super.onResume();
     }
+
+    private void refreshWeatherByLoc(WeatherActivity parentActivity, final String currTempUnit, final CardView cardView) {
+        final AsyncWeatherService weatherService = new AsyncWeatherService();
+
+        if (currTempUnit.equals("metric")) {
+            Observable<WeatherData> observable = weatherService.getCurrentWeatherInMetric(getCurrLocation());
+            observable
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<WeatherData>() {
+                        public void call(WeatherData weatherData) {
+                            WeatherCard weatherCard = initWeatherCard(weatherData, currTempUnit);
+                            cardView.refreshCard(weatherCard);
+                            cardView.refreshDrawableState();
+                        }
+                    });
+        } else if (currTempUnit.equals("imperial")) {
+            Observable<WeatherData> observable = weatherService.getCurrentWeatherInImperial(getCurrLocation());
+            observable
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<WeatherData>() {
+                        public void call(WeatherData weatherData) {
+                            WeatherCard weatherCard = initWeatherCard(weatherData, currTempUnit);
+                            cardView.refreshCard(weatherCard);
+                            cardView.refreshDrawableState();
+                        }
+                    });
+        }
+    }
+
 }

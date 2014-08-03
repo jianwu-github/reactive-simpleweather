@@ -29,11 +29,11 @@ public class AsyncWeatherService {
         openWeatherService = restAdapter.create(OpenWeatherServiceApi.class);
     }
 
-    public Observable<WeatherData> getCurrentWeather(final GeoPoint geoPoint) {
+    public Observable<WeatherData> getCurrentWeatherInMetric(final GeoPoint geoPoint) {
         return Observable.create(new Observable.OnSubscribe<WeatherData>() {
             public void call(Subscriber<? super WeatherData> subscriber) {
                 try {
-                    subscriber.onNext(openWeatherService.currentWeather(geoPoint.getLongitude(), geoPoint.getLatitude()));
+                    subscriber.onNext(openWeatherService.currentWeatherInMetric(geoPoint.getLongitude(), geoPoint.getLatitude()));
                     subscriber.onCompleted();
                 } catch (Exception e) {
                     subscriber.onError(e);
@@ -42,11 +42,37 @@ public class AsyncWeatherService {
         });
     }
 
-    public Observable<ForecastData> get7DayForecasts(final GeoPoint geoPoint) {
+    public Observable<ForecastData> get7DayForecastsInMetric(final GeoPoint geoPoint) {
         return Observable.create(new Observable.OnSubscribe<ForecastData>() {
             public void call(Subscriber<? super ForecastData> subscriber) {
                 try {
-                    subscriber.onNext(openWeatherService.weeklyForecast(geoPoint.getLongitude(), geoPoint.getLatitude()));
+                    subscriber.onNext(openWeatherService.weeklyForecastInMetric(geoPoint.getLongitude(), geoPoint.getLatitude()));
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        }).subscribeOn(Schedulers.io());
+    }
+
+    public Observable<WeatherData> getCurrentWeatherInImperial(final GeoPoint geoPoint) {
+        return Observable.create(new Observable.OnSubscribe<WeatherData>() {
+            public void call(Subscriber<? super WeatherData> subscriber) {
+                try {
+                    subscriber.onNext(openWeatherService.currentWeatherInImperial(geoPoint.getLongitude(), geoPoint.getLatitude()));
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        });
+    }
+
+    public Observable<ForecastData> get7DayForecastsInImperial(final GeoPoint geoPoint) {
+        return Observable.create(new Observable.OnSubscribe<ForecastData>() {
+            public void call(Subscriber<? super ForecastData> subscriber) {
+                try {
+                    subscriber.onNext(openWeatherService.weeklyForecastInImperial(geoPoint.getLongitude(), geoPoint.getLatitude()));
                     subscriber.onCompleted();
                 } catch (Exception e) {
                     subscriber.onError(e);

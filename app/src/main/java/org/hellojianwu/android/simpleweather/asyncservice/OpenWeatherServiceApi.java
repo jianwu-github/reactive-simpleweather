@@ -14,8 +14,14 @@ import rx.Observable;
  */
 public interface OpenWeatherServiceApi {
     @GET("/weather?units=metric")
-    WeatherData currentWeather(@Query("lon") double longitude, @Query("lat") double latitude);
+    WeatherData currentWeatherInMetric(@Query("lon") double longitude, @Query("lat") double latitude);
 
     @GET("/forecast/daily?units=metric&cnt=7")
-    ForecastData weeklyForecast(@Query("lon") double longitude, @Query("lat") double latitude);
+    ForecastData weeklyForecastInMetric(@Query("lon") double longitude, @Query("lat") double latitude);
+
+    @GET("/weather?units=imperial")
+    WeatherData currentWeatherInImperial(@Query("lon") double longitude, @Query("lat") double latitude);
+
+    @GET("/forecast/daily?units=imperial&cnt=7")
+    ForecastData weeklyForecastInImperial(@Query("lon") double longitude, @Query("lat") double latitude);
 }

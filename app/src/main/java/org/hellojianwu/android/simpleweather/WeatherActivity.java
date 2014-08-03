@@ -1,11 +1,15 @@
 package org.hellojianwu.android.simpleweather;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import org.hellojianwu.android.simpleweather.fragment.WeatherCardFragment;
+import org.hellojianwu.android.simpleweather.util.PreferenceMonitor;
 
 import rx.subscriptions.CompositeSubscription;
 
@@ -22,9 +26,15 @@ public class WeatherActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather);
+
+        WeatherCardFragment weatherCardFragment = new WeatherCardFragment();
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.registerOnSharedPreferenceChangeListener(PreferenceMonitor.getInstance());
+
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
-                    .add(R.id.container, new WeatherCardFragment())
+                    .add(R.id.container, weatherCardFragment, "PreferenceChangeListener")
                     .commit();
         }
     }
@@ -46,8 +56,10 @@ public class WeatherActivity extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 }

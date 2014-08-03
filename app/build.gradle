@@ -30,7 +30,7 @@ def var = dependencies {
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.0.+'
     compile 'com.google.code.gson:gson:2.2.4'
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:support-v13:19.+'
-    compile 'com.android.support:appcompat-v7:19.+'
+    compile 'com.android.support:support-v13:20.+'
+    compile 'com.android.support:appcompat-v7:20.+'
 }
 var

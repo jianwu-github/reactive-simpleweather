@@ -30,10 +30,20 @@ import it.gmariotti.cardslib.library.prototypes.CardWithList;
  */
 public class WeatherCard extends CardWithList {
 
+    private String tempUnit;
+
     private WeatherData weatherData;
 
     public WeatherCard(Context context) {
         super(context);
+    }
+
+    public String getTempUnit() {
+        return tempUnit;
+    }
+
+    public void setTempUnit(String tempUnit) {
+        this.tempUnit = tempUnit;
     }
 
     public WeatherData getWeatherData() {
@@ -80,15 +90,30 @@ public class WeatherCard extends CardWithList {
             weatherCardItemList.add(weatherCardItem1);
 
             // Temperature
-            WeatherCardItem weatherCardItem2 = new WeatherCardItem(this);
-            weatherCardItem2.weatherCardItemIcon = R.drawable.temperature;
-            weatherCardItem2.weatherCardItemText1 = main.getTemp().toString() + "°C";
-            if (main.getTempMax() != null && main.getTempMin() != null) {
-                weatherCardItem2.weatherCardItemText2 = "( " + main.getTempMin().toString() + "°C - " + main.getTempMax().toString() + "°C )";
+            if (tempUnit != null && tempUnit.equalsIgnoreCase("imperial")) {
+                WeatherCardItem weatherCardItem2 = new WeatherCardItem(this);
+                weatherCardItem2.weatherCardItemIcon = R.drawable.temperature;
+                weatherCardItem2.weatherCardItemText1 = main.getTemp().toString() + "°F";
+                if (main.getTempMax() != null && main.getTempMin() != null) {
+                    weatherCardItem2.weatherCardItemText2 = "( " + main.getTempMin().toString() + "°F - " + main.getTempMax().toString() + "°F )";
+                } else {
+                    weatherCardItem2.weatherCardItemText2 = "";
+                }
+
+                weatherCardItemList.add(weatherCardItem2);
             } else {
-                weatherCardItem2.weatherCardItemText2 = "";
+                // metric
+                WeatherCardItem weatherCardItem2 = new WeatherCardItem(this);
+                weatherCardItem2.weatherCardItemIcon = R.drawable.temperature;
+                weatherCardItem2.weatherCardItemText1 = main.getTemp().toString() + "°C";
+                if (main.getTempMax() != null && main.getTempMin() != null) {
+                    weatherCardItem2.weatherCardItemText2 = "( " + main.getTempMin().toString() + "°C - " + main.getTempMax().toString() + "°C )";
+                } else {
+                    weatherCardItem2.weatherCardItemText2 = "";
+                }
+
+                weatherCardItemList.add(weatherCardItem2);
             }
-            weatherCardItemList.add(weatherCardItem2);
 
             // Wind
             WeatherCardItem weatherCardItem3 = new WeatherCardItem(this);
